@@ -11,5 +11,8 @@ class ContactList(models.Model):
 	phonenumbers = models.TextField(default="[]")
 	emailaddress = models.TextField(default="[]")
 
+	recentnotifications = models.TextField(default="[]")
+	recentnotificationtimes = models.TextField(default="[]")
+
 	def __unicode__(self):
 		return self.listname

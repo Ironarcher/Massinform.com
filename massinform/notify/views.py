@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from .models import ContactList
+from django.contrib.auth.models import User
 
 import json
 import smtplib
@@ -94,14 +95,30 @@ def notify(contactlist, message):
 		TO.append(email)
 
 	# Prepare actual message
-    message = """\From: %s\nSubject: %s\n\n%s
-    """ % (FROM, SUBJECT, TEXT)
-    try:
-        server = smtplib.SMTP("smtp.gmail.com", 587)
-        server.ehlo()
-        server.starttls()
-        server.login(gmail_user, gmail_pwd)
-        server.sendmail(FROM, TO, message)
-        server.close()
-    except:
-        print "failed to send email"
+	message = """\From: %s\nSubject: %s\n\n%s""" % (FROM, SUBJECT, TEXT)
+	try:
+		server = smtplib.SMTP("smtp.gmail.com", 587)
+		server.ehlo()
+		server.starttls()
+		server.login(gmail_user, gmail_pwd)
+		server.sendmail(FROM, TO, message)
+		server.close()
+	except:
+		print "failed to send email"
+
+def getUserContactLists(userprofile):
+	try:
+		return json.decoder.JSONDecoder().decode(userprofile.contact_list_ids)
+	except ValueError:
+		return []
+
+def addUserContactList(userprofile, contactlist):
+	clist = getContactLists(userprofile)
+	clist.insert(contactlist)
+	userprofile.save()
+
+def deleteUserContactList(userprofile, contactlist):
+	clist = getContactLists(userprofile)
+	if contactlist in clist:
+		clist.remove(contactlist)
+	userprofile.save()
