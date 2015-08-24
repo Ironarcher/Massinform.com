@@ -41,10 +41,8 @@ def index_view2(request):
 				tempdict['phonenumber'] = phonenumbers[i]
 				tempdict['email'] = emailaddr[i]
 				contacts.append(tempdict)
-			clist['content'] = getFirstNames(c)
-			clist['lastnames'] = getLastNames(c)
-			clist['phonenumbers'] = getPhoneNumbers(c)
-			clist['emailaddresses'] = getEmails(c)
+			clist['contacts'] = contacts
+			clist['id'] = c.id
 			contactlists.append(clist)
 
 			nots = {}
@@ -57,6 +55,29 @@ def index_view2(request):
 	}
 	print(contactlists)
 	return render(request, 'notify/notify.html', context)
+
+#Ajax method
+def like_project(request):
+	if request.user.is_authenticated():
+		#Get data
+		if request.GET:
+			if 'clist_id' in request.GET and 'new_firstname' in request.GET and 
+			'new_lastname' in request.GET and 'new_phonenumber' in request.GET and 
+			'new_email' in request.GET and:
+				clist_id = request.GET['clist_id']
+				new_firstname = request.GET['new_firstname']
+				new_lastname = request.GET['new_lastname']
+				new_phonenumber = request.GET['new_phonenumber']
+				new_email = request.GET['new_email']
+				userp = request.user.profile
+				
+				return JsonResponse(projectfile['popularity'])
+			else:
+				return HttpResponseRedirect('/')
+		else:
+			return HttpResponseRedirect('/')
+	else:
+		return HttpResponseRedirect('/')
 
 def getContactList(name):
 	return ContactList.objects.get(name=name)
