@@ -25,10 +25,10 @@
 
 {% block body %}
 	<a href="/index/"><span class="glyphicon glyphicon-home" id="homebutton"></span></a>
-	<a href="/logoff/"><span class="glyphicon glyphicon-off" id="signout"></span></a>
+	<a href="/logout/"><span class="glyphicon glyphicon-off" id="signout"></span></a>
 <div class="container-fluid">
 	<div class="row">
-		<div class="col-md-6 col-md-offset-3">
+		<div class="col-md-8 col-md-offset-2">
 		</br>
 			<div class="panel panel-default">
 				<div class="panel-heading">Recent Notifications Sent:</div>
@@ -37,35 +37,49 @@
 					</div> <!-- notification panel content -->
 			</div> <!--notification panel -->
 		</br>
+		{% for clist in contactlists %}
 			<div class="panel panel-default">
 				<div class="panel-heading">
-					<h4 class="smaller">Title<button type="button" class="btn btn-primary" style="display: inline; margin-left: 20px;">Notify</button>
+					<h4 class="smaller">{{ clist.name }}<button type="button" class="btn btn-primary" style="display: inline; margin-left: 20px;">Notify</button>
 						<small style="float: right;">Contact List</small></h4>
 				</div>
 					<div class="panel-body">
 						<table class="table table-hover">
 							<thead>
 								<tr>
-  								<th>First Name</th>
-  								<th>Last Name</th>
-  								<th>Phone Number</th>
-  								<th>E-mail address</th>
-  								<th></th>
-  							</tr>
+	  								<th>First Name</th>
+	  								<th>Last Name</th>
+	  								<th>Phone Number</th>
+	  								<th>E-mail address</th>
+	  								<th></th>
+  								</tr>
 							</thead>
 							<tbody>
-					    	<tr>
-					    		<td>John</td>
-					        	<td>Doe</td>
-					        	<td>012-345-6789</td>
-					        	<td>john@example.com</td>
-					        	<td><button type="button" class="btn btn-default btn-xs" style="margin-right: -20px;" id="removeContact">
-      								<span class="glyphicon glyphicon-remove"></span>
-    							</button></span></td>
-					      	</tr>
+								{% for c in clist.contacts %}
+						    	<tr>
+						    		<td>c.firstname</td>
+						        	<td>c.lastname</td>
+						        	<td>c.phonenumber</td>
+						        	<td>c.email</td>
+						        	<td><button type="button" class="btn btn-default btn-xs" style="margin-right: -10px;" id="removeContact">
+	      								<span class="glyphicon glyphicon-remove"></span>
+	    							</button></span></td>
+						      	</tr>
+						      	{% endfor %}
+						      	<tr>
+						      		<form>
+						      			<td><input type="text" pattern="[A-Za-z]{4-50}" id="new_firstname" title="First Name must only have letters and space. It must be 4-50 characters long."></td>
+						      			<td><input type="text" id="new_lastname"></td>
+						      			<td><input type="text" id="new_phonenumber"></td>
+						      			<td><input type="text" id="new_email"></td>
+						      			<td><button type="submit" value="login" class="btn btn-small btn-accept"><span class="glyphicon glyphicon-plus"></span> Create Contact</button></td>
+						      		</form>
+						      	</tr>
+						      </tbody>
 						</table>
 					</div> <!-- contactlist panel content -->
 			</div> <!--contactlist panel -->
+			{% endfor %}
 		</div> <!-- column -->
 	</div> <!-- row -->
 </div> <!-- container -->

@@ -9,10 +9,11 @@ class ContactList(models.Model):
 	firstnames = models.TextField(default="[]")
 	lastnames = models.TextField(default="[]")
 	phonenumbers = models.TextField(default="[]")
-	emailaddress = models.TextField(default="[]")
+	emailaddresses = models.TextField(default="[]")
 
 	recentnotifications = models.TextField(default="[]")
-	recentnotificationtimes = models.TextField(default="[]")
+	#Times corresponding to every notification about when it was sent
+	rnottimes = models.TextField(default="[]")
 
 	def __unicode__(self):
 		return self.listname

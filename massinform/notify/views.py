@@ -1,4 +1,5 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.http import *
 from .models import ContactList
 from django.contrib.auth.models import User
 
@@ -11,10 +12,50 @@ from email.MIMEText import MIMEText
 
 # Create your views here.
 
-def index(request):
+def index_view2(request):
+	if request.user.is_authenticated():
+		user = request.user
+	else:
+		return HttpResponseRedirect("/login?next=/notify/")
+
+	#Collect user information
+	c_ids = getUserContactLists(user.profile)
+	print(c_ids)
+	contactlists = []
+	notifications = []
+	for cid in c_ids:	
+		c = ContactList.objects.get(id=cid)
+		if c is not None:
+			#Translate data into string object to send to client
+			clist = {}
+			clist['name'] = c.listname
+			firstnames = getFirstNames(c)
+			lastnames = getLastNames(c)
+			phonenumbers = getPhoneNumbers(c)
+			emailaddr = getEmails(c)
+			contacts = []
+			for i in range(len(firstnames)):
+				tempdict = {}
+				tempdict['firstname'] = firstnames[i]
+				tempdict['lastname'] = lastnames[i]
+				tempdict['phonenumber'] = phonenumbers[i]
+				tempdict['email'] = emailaddr[i]
+				contacts.append(tempdict)
+			clist['content'] = getFirstNames(c)
+			clist['lastnames'] = getLastNames(c)
+			clist['phonenumbers'] = getPhoneNumbers(c)
+			clist['emailaddresses'] = getEmails(c)
+			contactlists.append(clist)
+
+			nots = {}
+			nots['text'] = c.recentnotifications
+			nots['times'] = c.rnottimes
+			nots['clist_name'] = c.listname
 	context = {
-		
+		"contactlists" : contactlists,
+		"notifications" : notifications,
 	}
+	print(contactlists)
 	return render(request, 'notify/notify.html', context)
 
 def getContactList(name):
@@ -114,11 +155,11 @@ def getUserContactLists(userprofile):
 
 def addUserContactList(userprofile, contactlist):
 	clist = getContactLists(userprofile)
-	clist.insert(contactlist)
+	clist.insert(contactlist.id)
 	userprofile.save()
 
 def deleteUserContactList(userprofile, contactlist):
 	clist = getContactLists(userprofile)
 	if contactlist in clist:
-		clist.remove(contactlist)
+		clist.remove(contactlist.id)
 	userprofile.save()

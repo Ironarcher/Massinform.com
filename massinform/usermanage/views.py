@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect
 from django.http import *
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
+from notify.models import ContactList
 
 import re
 import json
@@ -13,10 +14,9 @@ import hashlib
 def login_view(request):
 	status = "started"
 	username = password = ""
-	next = ""
+	next = "/notify/"
 	if request.GET:
 		next = request.GET['next']
-		print(next)
 
 	if request.POST:
 		first = False
@@ -60,7 +60,7 @@ def register_view(request):
 		first = False
 		username = request.POST['username']
 		password = request.POST['password']
-		firstname = request.POST['firstname']
+		firstname = request.POST['displayname']
 		email = request.POST['email']
 		if len(username) < 4 or len(username) > 50:
 			#Username must be 4-50 characters long
@@ -71,9 +71,12 @@ def register_view(request):
 		if len(password) < 6 or len(password) > 50:
 			#Password must be 6-50 characters long
 			issues.append("password_length")
-		if re.match("^[A-Za-z]*$", firstname) is None:
+		if re.match("^[A-Za-z ]*$", firstname) is None:
 			#Names can only contain letters and spaces
 			issues.append("firstname_char")
+		if len(firstname) < 3 or len(username) > 70:
+			#Display name must be 3-70 characters long
+			issues.append("firstname_length")
 		if re.match("^[A-Za-z0-9@._]*$", email) is None or len(email) < 3:
 			#Email invalid
 			issues.append("email_char")
@@ -89,19 +92,36 @@ def register_view(request):
 			user = User.objects.create_user(username, email, password)
 			if len(firstname) != 0:
 				user.first_name = firstname
-			user.save()
+			userp = user.profile
+			userp.contact_list_ids = "[]"
+			userp.save()
+			print(user.profile.contact_list_ids)
+			#Authenticate and login user
+			userb = authenticate(username=username, password=password)
+			if userb is not None and userb.is_active:
+				login(request, userb)
+			else:
+				print("fatal error")
+
 			#Redirect the user to the verification process
 			#TO-DO
-			return HttpResponseRedirect("/")
+
+			#Create the first contact list
+			c = ContactList(listname = firstname + " List", firstnames="[]", lastnames="[]", phonenumbers="[]",
+				emailaddresses="[]", recentnotifications="[]", rnottimes="[]")
+			c.save()
+			addContactList(userb, c)
+			print(user.profile.contact_list_ids)
+			return HttpResponseRedirect("/notify/")
 	else:
 		first = True
-
+	print(firstname)
 	context = {
 		"issues" : issues,
 		"first" : first,
 		"username_init" : username,
 		"password_init" : password,
-		"firstname_init" : firstname,
+		"displayname_init" : firstname,
 		"email_init" : email,
 	}
 	return render(request, 'usermanage/register.html', context)
@@ -181,13 +201,17 @@ def getContactLists(userprofile):
 	except ValueError:
 		return []
 
-def addContactList(userprofile, contactlist):
-	clist = getContactLists(userprofile)
-	clist.insert(contactlist)
-	userprofile.save()
+def addContactList(user, contactlist):
+	userp = user.profile
+	clist = getContactLists(userp)
+	clist.insert(0, contactlist.id)
+	userp.contact_list_ids = json.dumps(clist)
+	userp.save()
 
-def deleteContactList(userprofile, contactlist):
-	clist = getContactLists(userprofile)
+def deleteContactList(user, contactlist):
+	userp = user.profile
+	clist = getContactLists(userp)
 	if contactlist in clist:
-		clist.remove(contactlist)
-	userprofile.save()
+		clist.remove(contactlist.id)
+	userp.contact_list_ids = json.dumps(clist)
+	userp.save()

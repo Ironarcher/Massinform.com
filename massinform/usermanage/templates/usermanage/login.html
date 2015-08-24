@@ -13,7 +13,7 @@
 
 {% endblock %}
 
-{% block content %}
+{% block body %}
 <div class="container">
     <div class="center-block">
         {% if status == "started" %}
@@ -46,7 +46,7 @@
                     <div class="form-group">
                 {% endif %}
                     <label for="username">Username</label>
-                    <input type="text" class="form-control" id="username" name="username" value= {{ username_init }}>
+                    <input type="text" class="form-control" id="username" name="username" value="{{ username_init }}">
                 </div>
 
                 {% if status == "inactive" or status == "failed" %}
@@ -57,7 +57,7 @@
                     <div class="form-group">
                 {% endif %}
                     <label for="password">Password</label>
-                    <input type="password" class="form-control" id="password" name="password" value= {{ password_init }}>
+                    <input type="password" class="form-control" id="password" name="password" value="{{ password_init }}">
                 </div>
 
                 <div class="checkbox">
@@ -72,14 +72,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{# Leave the right part of the navbar blank #}
-{% block navbarspec %}
-<ul class="nav navbar-nav">
-    <li><a href="/">Home</a></li>
-    <li><a href="/getstarted">Get Started</a></li>
-    <li><a href="/pricing">Pricing</a></li> 
-    <li><a href="/docs">Documentation</a></li> 
-</ul>
 {% endblock %}

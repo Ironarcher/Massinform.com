@@ -18,7 +18,7 @@ from django.contrib import admin
 
 urlpatterns = [
     url(r'^notify/', include('notify.urls')),
-    url(r'^index/', 'massinform_index.index_view'),
+    url(r'^/', 'massinform_index.index_view'),
     url(r'^admin/', include(admin.site.urls)),
 
     #Usermanage urls

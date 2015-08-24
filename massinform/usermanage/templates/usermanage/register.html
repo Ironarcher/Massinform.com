@@ -17,8 +17,9 @@
 
 {% endblock %}
 
-{% block content %}
+{% block body %}
 <div class="container">
+</br>
     <div class-"center-block">
          {% if "username_taken" in issues%}
             <div class="alert alert-warning">
@@ -45,9 +46,10 @@
                 <p class="text-center">The first name can only contain letters and spaces.</p>
             </div>
         {% endif %}
-        {% if "lastname_char" in issues%}
+        {% if "firstname_length" in issues%}
             <div class="alert alert-warning">
-                <p class="text-center">The last name can only contain letters and spaces.</p>
+                <p class="text-center">The first name must be between 3 to 70 characters.</p>
+            </div>
         {% endif %}
         {% if "email_char" in issues%}
             <div class="alert alert-warning">
@@ -72,7 +74,7 @@
                     <div class="form-group">
                 {% endif %}
                     <label for="username">Username</label>
-                    <input type="text" class="form-control" id="username" name="username" value={{ username_init }}>
+                    <input type="text" class="form-control" id="username" name="username" value="{{ username_init }}">
                 {% if "username_length" in issues or "username_taken" in issues or "username_char" in issues %}
                     <span class="glyphicon glyphicon-remove form-control-feedback"></span>
                 {% elif not first %}
@@ -80,32 +82,16 @@
                 {% endif %}
                 </div>
 
-                {% if "firstnam_char" in issues %}
+                {% if "firstname_char" in issues or "firstname_length" in issues %}
                     <div class="form-group has-error has-feedback">
                 {% elif not first %}
                     <div class="form-group has-success has-feedback">
                 {% else %}
                     <div class="form-group">
                 {% endif %}
-                     <label for="firstname">First Name</label>
-                    <input type="text" class="form-control" id="firstname" name="firstname" placeholder="Optional" value={{ firstname_init }}>
-                {% if "firstname_char" in issues %}
-                    <span class="glyphicon glyphicon-remove form-control-feedback"></span>
-                {% elif not first %}
-                    <span class="glyphicon glyphicon-ok form-control-feedback"></span>
-                {% endif %}
-                </div>
-
-                {% if "lastname_char" in issues %}
-                    <div class="form-group has-error has-feedback">
-                {% elif not first %}
-                    <div class="form-group has-success has-feedback">
-                {% else %}
-                    <div class="form-group">
-                {% endif %}
-                    <label for="lastname">Last Name</label>
-                    <input type="text" class="form-control" id="lastname" name="lastname" placeholder="Optional" value= {{ lastname_init }}>
-                {% if "lastname_char" in issues %}
+                    <label for="firstname">Organization, Institution, or Display Name</label>
+                    <input type="text" class="form-control" id="displayname" name="displayname" value="{{ displayname_init }}">
+                {% if "firstname_char" in issues or "firstname_length" in issues %}
                     <span class="glyphicon glyphicon-remove form-control-feedback"></span>
                 {% elif not first %}
                     <span class="glyphicon glyphicon-ok form-control-feedback"></span>
@@ -120,7 +106,7 @@
                     <div class="form-group">
                 {% endif %}
                     <label for="password">Password</label>
-                    <input type="password" class="form-control" id="password" name="password" value= {{ password_init }}>
+                    <input type="password" class="form-control" id="password" name="password" value="{{ password_init }}">
                 {% if "password_length" in issues %}
                     <span class="glyphicon glyphicon-remove form-control-feedback"></span>
                 {% elif not first %}
@@ -136,7 +122,7 @@
                     <div class="form-group">
                 {% endif %}
                     <label for="email">Email</label>
-                    <input type="text" class="form-control" id="email" name="email">
+                    <input type="text" class="form-control" id="email" name="email" value="{{ email_init }}">
                 {% if "email_char" in issues or "email_taken" in issues %}
                     <span class="glyphicon glyphicon-remove form-control-feedback"></span>
                 {% elif not first %}
@@ -152,15 +138,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{# Leave the right part of the navbar blank #}
-{% block navbarspec %}
-<ul class="nav navbar-nav">
-    <li class="active"><a href="/">Home</a></li>
-    <li><a href="/getstarted">Get Started</a></li>
-    <li><a href="/pricing">Pricing</a></li> 
-    <li><a href="/docs">Documentation</a></li> 
-    </ul>
-</ul> 
 {% endblock %}
