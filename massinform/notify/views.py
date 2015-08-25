@@ -57,23 +57,59 @@ def index_view2(request):
 	return render(request, 'notify/notify.html', context)
 
 #Ajax method
-def like_project(request):
+def createContact(request):
 	if request.user.is_authenticated():
 		#Get data
 		if request.GET:
-			if 'clist_id' in request.GET and 'new_firstname' in request.GET and 
-			'new_lastname' in request.GET and 'new_phonenumber' in request.GET and 
-			'new_email' in request.GET and:
-				clist_id = request.GET['clist_id']
-				new_firstname = request.GET['new_firstname']
-				new_lastname = request.GET['new_lastname']
-				new_phonenumber = request.GET['new_phonenumber']
-				new_email = request.GET['new_email']
-				userp = request.user.profile
-				
-				return JsonResponse(projectfile['popularity'])
+			#if 'contactlist' in request.GET and 'new_firstname' in request.GET and 'new_lastname' in request.GET and 'new_phonenumber' in request.GET and 'new_email' in request.GET:
+			clist_id = request.GET['contactlist']
+			new_firstname = request.GET['new_firstname']
+			new_lastname = request.GET['new_lastname']
+			new_phonenumber = request.GET['new_phonenumber']
+			new_email = request.GET['new_email']
+
+			print(new_firstname)
+			#Check to make sure the parameters are valid
+			if len(new_firstname) < 4 or len(new_firstname) > 50:
+				print('0')
+				if len(new_firstname) != 0:
+					return;
+				else:
+					new_firstname = ""
+			elif re.match('[A-Za-z]', new_lastname) is None and len(new_lastname) != 0:
+				print('1')
+				return;
+			elif len(new_lastname) < 4 or len(new_lastname) > 50:
+				print('2')
+				if len(new_lastname) != 0:
+					return;
+				else:
+					new_lastname = ""
+			elif re.match('[A-Za-z]', new_lastname) is None and len(new_lastname) != 0:
+				print('3')
+				return;
+			elif len(new_phonenumber) != 10:
+				print('4')
+				if len(new_phonenumber) != 0:
+					return;
+				else:
+					new_phonenumber = ""
+			elif re.match('[0-9]', new_phonenumber) is None:
+				print('5')
+				return;
+			elif re.match("^[A-Za-z0-9@._]*$", new_email) is None:
+				print('6')
+				return;
+			elif len(new_email) < 3 or len(new_email) > 70:
+				print('7')
+				return;
 			else:
-				return HttpResponseRedirect('/')
+				print('a')
+				contactlist = ContactList.objects.get(id=clist_id)
+				print('b')
+				addToContactList(contactlist, new_firstname, new_lastname, new_phonenumber, new_email)
+				print('hi')
+				return HttpResponse("success")
 		else:
 			return HttpResponseRedirect('/')
 	else:
@@ -109,15 +145,18 @@ def getEmails(contactlist):
 #Must have an email address
 def addToContactList(contactlist, firstname, lastname, phonenumber, emailaddress):
 	email = getEmails(contactlist)
+	print(email)
 	if emailaddress not in email:
-		email.insert(emailaddress)
+		email.insert(0, emailaddress)
+		print('kkkk')
 		firstlist = getFirstNames(contactlist)
-		firstlist.insert(firstname)
+		firstlist.insert(0, firstname)
+		print('wifj')
 		lastlist = getLastNames(contactlist)
-		lastlist.insert(lastname)
+		lastlist.insert(0, lastname)
 		phonelist = getPhoneNumbers(contactlist)
-		phonelist.insert(phonenumber)
-
+		phonelist.insert(0, phonenumber)
+		print('hi')
 		#Save all of these lists
 		contactlist.firstnames = json.dumps(firstlist)
 		contactlist.lastnames = json.dumps(lastlist)
