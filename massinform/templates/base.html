@@ -12,6 +12,7 @@
 		<link rel="stylesheet" href="{% static "bootstrap-3.3.5-dist/css/bootstrap.min.css" %}">
 		<script src="{% static "jquery2_1_4.js" %}"></script>
 		<script src="{% static "bootstrap-3.3.5-dist/js/bootstrap.min.js" %}"></script>
+		{% block import %}{% endblock %}
 		<!-- <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css"> -->
 		<link rel="shortcut icon" type="image/png" href="{% static "favicon.ico" %}"/>
 		<title>{% block title %}MassInform{% endblock %}</title>
