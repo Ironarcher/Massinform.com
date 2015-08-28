@@ -8,6 +8,7 @@ import smtplib
 import sys
 import os
 import re
+import time
 from email.MIMEText import MIMEText
 
 # Create your views here.
@@ -27,7 +28,6 @@ def index_view2(request):
 	else:
 		#Collect user information
 		c_ids = getUserContactLists(user.profile)
-		print(c_ids)
 		contactlists = []
 		notifications = []
 		for cid in c_ids:	
@@ -52,15 +52,19 @@ def index_view2(request):
 				clist['id'] = c.id
 				contactlists.append(clist)
 
+				#Get recent notifications and other information
 				nots = {}
-				nots['text'] = c.recentnotifications
-				nots['times'] = c.rnottimes
+				nots['text'] = getRecentNots(c)
+				nots['times'] = getRecentNotTimes(c)
 				nots['clist_name'] = c.listname
+				print(nots)
+				notifications.append(nots)
+
+		#Get recent notifications
 		context = {
 			"contactlists" : contactlists,
 			"notifications" : notifications,
 		}
-		print(contactlists)
 		return render(request, 'notify/notify.html', context)
 
 #Ajax method
@@ -231,7 +235,7 @@ def createContactlist(name):
 	c = ContactList(name=name)
 	c.save()
 
-def notify(contactlist, message):
+def notify(contactlist, msg):
 	carrierlist = [
 		"vtext.com",
 		"txt.att.net",
@@ -253,7 +257,7 @@ def notify(contactlist, message):
 		TO.append(email)
 
 	# Prepare actual message
-	message = """\From: %s\n\n%s""" % (FROM, message)
+	message = """\From: %s\n\n%s""" % (FROM, msg)
 	try:
 		server = smtplib.SMTP("smtp.gmail.com", 587)
 		server.ehlo()
@@ -261,6 +265,8 @@ def notify(contactlist, message):
 		server.login(gmail_user, gmail_pwd)
 		server.sendmail(FROM, TO, message)
 		server.close()
+
+		rememberNotifications(contactlist, msg)
 	except:
 		print "failed to send email"
 
@@ -286,3 +292,36 @@ def deleteUserContactList(userprofile, contactlist):
 	userprofile.contact_list_ids = json.dumps(clist)
 	print("FJJJjj")
 	userprofile.save()
+
+def verifyUser(user, contactlist):
+	usercontactlists = getUserContactLists(user.profile)
+	if contactlist.id in usercontactlists:
+		return True
+	else:
+		return False
+
+#Section for saving and getting recent notifications
+def getRecentNots(contactlist):
+	try:
+		return json.decoder.JSONDecoder().decode(contactlist.recentnotifications)
+	except ValueError:
+		return []
+
+def getRecentNotTimes(contactlist):
+	try:
+		return json.decoder.JSONDecoder().decode(contactlist.rnottimes)
+	except ValueError:
+		return []
+
+def rememberNotifications(contactlist, notification):
+	print("!!!!!")
+	recentnots = getRecentNots(contactlist)
+	recentnottimes = getRecentNotTimes(contactlist)
+
+	recentnots.insert(0, notification)
+	tm = int(time.time())
+	recentnottimes.insert(0, tm)
+
+	contactlist.recentnotifications = json.dumps(recentnots)
+	contactlist.recentnottimes = json.dumps(recentnottimes)
+	contactlist.save()

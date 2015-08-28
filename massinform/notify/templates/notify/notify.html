@@ -122,7 +122,11 @@ $(document).ready(function(){
 			<div class="panel panel-default">
 				<div class="panel-heading">Recent Notifications Sent:</div>
 					<div class="panel-body">
-						Sample content
+						{% for notlist in notifications %}
+							{% for text in notlist.text %}
+								<p>{{ text }}</p>
+							{% endfor %}
+						{% endfor %}
 					</div> <!-- notification panel content -->
 			</div> <!--notification panel -->
 		</br>
