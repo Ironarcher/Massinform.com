@@ -36,20 +36,24 @@ $(document).ready(function(){
 	
 	//Remove a contact
 	$(".removecontact").click(function(event){
+		//Get row of table and resulting information
+		var $row = $(this).closest("tr");
+		var phonenumber = $row.find("td:nth-child(3)").text();
+		var email = $row.find("td:nth-child(4)").text()
+
+		//Dynamically kill the row and get clist_id
 		event.preventDefault();
-		var $killrow = $(this).parent('tr');
 		var clist_id = $(this).attr('id');
 		clist_id = clist_id.replace('-removeContact', '');
-		alert('yo1');
 		//return window.confirm("Are you sure you want to delete this contact?");
-		$.get("/notify/deletecontact", {contactlist: clist_id}, function(data){
-			alert('yo2');
+		$.get("/notify/deletecontact", {contactlist: clist_id, email: email, phonenumber: phonenumber}, function(data){
 			//Contact deleted
-			if(data == "success"){
-				$killrow.fadeOut(200, function(){
-			    	$(this).remove();
-				});
-			}
+			window.location.reload(true);
 		});
+	});
+
+	$('#notModal').on('show.bs.modal', function(e) {
+    	var clist_id = $(e.relatedTarget).data('clist-id');
+    	$(e.currentTarget).find('input[name="clist_id"]').val(clist_id);
 	});
 });

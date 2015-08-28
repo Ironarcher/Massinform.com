@@ -18,43 +18,50 @@ def index_view2(request):
 	else:
 		return HttpResponseRedirect("/login?next=/notify/")
 
-	#Collect user information
-	c_ids = getUserContactLists(user.profile)
-	print(c_ids)
-	contactlists = []
-	notifications = []
-	for cid in c_ids:	
-		c = ContactList.objects.get(id=cid)
-		if c is not None:
-			#Translate data into string object to send to client
-			clist = {}
-			clist['name'] = c.listname
-			firstnames = getFirstNames(c)
-			lastnames = getLastNames(c)
-			phonenumbers = getPhoneNumbers(c)
-			emailaddr = getEmails(c)
-			contacts = []
-			for i in range(len(firstnames)):
-				tempdict = {}
-				tempdict['firstname'] = firstnames[i]
-				tempdict['lastname'] = lastnames[i]
-				tempdict['phonenumber'] = phonenumbers[i]
-				tempdict['email'] = emailaddr[i]
-				contacts.append(tempdict)
-			clist['contacts'] = contacts
-			clist['id'] = c.id
-			contactlists.append(clist)
+	if request.POST:
+		notText = request.POST['content']
+		clist_id = request.POST['clist_id']
+		clist = ContactList.objects.get(id=clist_id)
+		notify(clist, notText)
+		return HttpResponseRedirect("/notify/")
+	else:
+		#Collect user information
+		c_ids = getUserContactLists(user.profile)
+		print(c_ids)
+		contactlists = []
+		notifications = []
+		for cid in c_ids:	
+			c = ContactList.objects.get(id=cid)
+			if c is not None:
+				#Translate data into string object to send to client
+				clist = {}
+				clist['name'] = c.listname
+				firstnames = getFirstNames(c)
+				lastnames = getLastNames(c)
+				phonenumbers = getPhoneNumbers(c)
+				emailaddr = getEmails(c)
+				contacts = []
+				for i in range(len(firstnames)):
+					tempdict = {}
+					tempdict['firstname'] = firstnames[i]
+					tempdict['lastname'] = lastnames[i]
+					tempdict['phonenumber'] = phonenumbers[i]
+					tempdict['email'] = emailaddr[i]
+					contacts.append(tempdict)
+				clist['contacts'] = contacts
+				clist['id'] = c.id
+				contactlists.append(clist)
 
-			nots = {}
-			nots['text'] = c.recentnotifications
-			nots['times'] = c.rnottimes
-			nots['clist_name'] = c.listname
-	context = {
-		"contactlists" : contactlists,
-		"notifications" : notifications,
-	}
-	print(contactlists)
-	return render(request, 'notify/notify.html', context)
+				nots = {}
+				nots['text'] = c.recentnotifications
+				nots['times'] = c.rnottimes
+				nots['clist_name'] = c.listname
+		context = {
+			"contactlists" : contactlists,
+			"notifications" : notifications,
+		}
+		print(contactlists)
+		return render(request, 'notify/notify.html', context)
 
 #Ajax method
 def createContact(request):
@@ -118,8 +125,17 @@ def deleteContact(request):
 		#Get data
 		if request.GET:
 			if 'contactlist' in request.GET:
+				if 'email' in request.GET:
+					email = request.GET['email']
+				else:
+					email = ""
+
+				if 'phonenumber' in request.GET:
+					phonenumber = request.GET['phonenumber']
+				else:
+					phonenumber = ""
 				clist_id = request.GET['contactlist']
-				removeFromContactList(clist_id, request.user.profile)
+				removeFromContactList(clist_id, email, phonenumber)
 				return HttpResponse("success")
 			else:
 				return HttpResponseRedirect('/')
@@ -158,7 +174,6 @@ def getEmails(contactlist):
 #Must have an email address
 def addToContactList(contactlist, firstname, lastname, phonenumber, emailaddress):
 	email = getEmails(contactlist)
-	print(email)
 	if emailaddress not in email:
 		email.insert(0, emailaddress)
 		firstlist = getFirstNames(contactlist)
@@ -178,11 +193,33 @@ def addToContactList(contactlist, firstname, lastname, phonenumber, emailaddress
 
 #Cannot have someone with no email address or the same email address
 def removeFromContactList(clist_id, email, phonenumber):
-	contactlist = Contacts.objects.get(id=clist_id)
-	firstname = getFirstNames(contactlist)
-	lastname = getLastNames(contactlist)
-	phonenumber = getPhoneNumbers(contactlist)
-	email = getEmails(contactlist)
+	contactlist = ContactList.objects.get(id=clist_id)
+	firstnames = getFirstNames(contactlist)
+	lastnames = getLastNames(contactlist)
+	phonenumbers = getPhoneNumbers(contactlist)
+	emails = getEmails(contactlist)
+	if email in emails and email != "":
+		position = [i for i, x in enumerate(emails) if x == email][0]
+		emails.remove(email)
+		firstnames.remove(firstnames[position])
+		lastnames.remove(lastnames[position])
+		phonenumbers.remove(phonenumbers[position])
+		contactlist.emailaddresses = json.dumps(emails)
+		contactlist.firstnames = json.dumps(firstnames)
+		contactlist.lastnames = json.dumps(lastnames)
+		contactlist.phonenumbers = json.dumps(phonenumbers)
+		contactlist.save()
+	elif phonenumber in phonenumbers:
+		position = [i for i, x in enumerate(phonenumbers) if x == phonenumber][0]
+		phonenumbers.remove(phonenumber)
+		firstnames.remove(firstnames[position])
+		lastnames.remove(lastnames[position])
+		phonenumbers.remove(phonenumbers[position])
+		contactlist.emailaddresses = json.dumps(emails)
+		contactlist.firstnames = json.dumps(firstnames)
+		contactlist.lastnames = json.dumps(lastnames)
+		contactlist.phonenumbers = json.dumps(phonenumbers)
+		contactlist.save()
 
 def deleteContactList(clist_id, userprofile):
 	contactlist = ContactList.objects.get(id=clist_id)
@@ -203,11 +240,11 @@ def notify(contactlist, message):
 		"email.uscc.net",
 		"vmobl.com",
 	]
-	gmail_user = ""
-	gmail_pwd = ""
-	FROM = contactlist.name + " <" + gmail_user + ">"
-	SUBJECCT = "Notification"
+	gmail_user = os.environ.get("GMAIL_USER")
+	gmail_pwd = os.environ.get("GMAIL_PASSWORD")
+	FROM = contactlist.listname + " <" + gmail_user + ">"
 	TO = []
+	SUBJECT = ""
 	for number in getPhoneNumbers(contactlist):
 		for carrier in carrierlist:
 			TO.append(number + "@" + carrier)
@@ -216,7 +253,7 @@ def notify(contactlist, message):
 		TO.append(email)
 
 	# Prepare actual message
-	message = """\From: %s\nSubject: %s\n\n%s""" % (FROM, SUBJECT, TEXT)
+	message = """\From: %s\n\n%s""" % (FROM, message)
 	try:
 		server = smtplib.SMTP("smtp.gmail.com", 587)
 		server.ehlo()
