@@ -61,6 +61,11 @@
                 <p class="text-center">This email is already being used.</p>
             </div>
         {% endif %}
+        {% if "nickname_length" in issues%}
+            <div class="alert alert-warning">
+                <p class="text-center">The nickname must be 1 to 10 characters.</p>
+            </div>
+        {% endif %}
 
         <h3 class="text-center">Register</h3>
         <div class="well">
@@ -124,6 +129,22 @@
                     <label for="email">Email</label>
                     <input type="text" class="form-control" id="email" name="email" value="{{ email_init }}">
                 {% if "email_char" in issues or "email_taken" in issues %}
+                    <span class="glyphicon glyphicon-remove form-control-feedback"></span>
+                {% elif not first %}
+                    <span class="glyphicon glyphicon-ok form-control-feedback"></span>
+                {% endif %}
+                </div>
+
+                {% if "nickname_length" in issues %}
+                    <div class="form-group has-error has-feedback">
+                {% elif not first %}
+                    <div class="form-group has-success has-feedback">
+                {% else %}
+                    <div class="form-group">
+                {% endif %}
+                    <label for="nickname">Nickname</label>
+                    <input type="text" class="form-control" id="nickname" name="nickname" value="{{ nickname_init }}">
+                {% if "nickname_length" in issues %}
                     <span class="glyphicon glyphicon-remove form-control-feedback"></span>
                 {% elif not first %}
                     <span class="glyphicon glyphicon-ok form-control-feedback"></span>

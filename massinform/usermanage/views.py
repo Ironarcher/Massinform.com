@@ -55,13 +55,14 @@ def logout_view(request):
 
 def register_view(request):
 	issues = []
-	username = firstname = lastname = password = email = ""
+	username = firstname = lastname = password = email = nickname = ""
 	if request.method == "POST":
 		first = False
 		username = request.POST['username']
 		password = request.POST['password']
 		firstname = request.POST['displayname']
 		email = request.POST['email']
+		nickname = request.POST['nickname']
 		if len(username) < 4 or len(username) > 50:
 			#Username must be 4-50 characters long
 			issues.append("username_length")
@@ -86,6 +87,9 @@ def register_view(request):
 		if check_email_exists(email):
 			#Email is already being used
 			issues.append("email_taken")
+		if len(nickname) < 1 or len(nickname) > 10:
+			#Nickname must bee 1-10 characters long
+			issues.append("nickname_length")
 
 		#Sign the user up
 		if len(issues) == 0:
@@ -94,6 +98,7 @@ def register_view(request):
 				user.first_name = firstname
 			userp = user.profile
 			userp.contact_list_ids = "[]"
+			userp.nickname = nickname
 			userp.save()
 			print(user.profile.contact_list_ids)
 			#Authenticate and login user
@@ -115,7 +120,6 @@ def register_view(request):
 			return HttpResponseRedirect("/notify/")
 	else:
 		first = True
-	print(firstname)
 	context = {
 		"issues" : issues,
 		"first" : first,
@@ -123,6 +127,7 @@ def register_view(request):
 		"password_init" : password,
 		"displayname_init" : firstname,
 		"email_init" : email,
+		"nickname_init" : nickname
 	}
 	return render(request, 'usermanage/register.html', context)
 

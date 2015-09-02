@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 
 class UserProfile(models.Model):
 	user = models.OneToOneField(settings.AUTH_USER_MODEL, primary_key=True)
+	nickname = models.CharField(max_length=10)
 	contact_list_ids = models.TextField(default="[]")
 
 	def __unicode__ (self):

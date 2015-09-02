@@ -59,7 +59,7 @@ $(document).ready(function(){
 			});
 		}
 	});
-	
+
 	//Remove a contact
 	$(".removecontact").click(function(event){
 		//Get row of table and resulting information
@@ -101,9 +101,10 @@ $(document).ready(function(){
         	{% csrf_token %}
         	<div class="form-group">
 			    <label for="content">Notification Text:</label>
-				<textarea maxlength="320" class="form-control" rows="3" placeholder="Enter your notification here" required id="content" name="content" pattern="[.]{4,400}" title="A notification must be 4-400 characteres long."></textarea>
+				<textarea maxlength="{{ not_length }}" class="form-control" rows="2" placeholder="Enter your notification here ({{ not_length }} characters maximum)" required id="content" name="content" title="A notification must be under 160 characteres long."></textarea>
 				<input type="hidden" name="clist_id" id="clist_id" value=""/>
 			</div>
+			<p style="margin-top: -5px; margin-bottom: 0px;" class="text-right">Signed: -{{ nickname }}</p>
 			<button value="notify" type="submit" class="btn btn-primary">Notify</button>
 		</form>
       </div>
@@ -122,11 +123,7 @@ $(document).ready(function(){
 			<div class="panel panel-default">
 				<div class="panel-heading">Recent Notifications Sent:</div>
 					<div class="panel-body">
-						{% for notlist in notifications %}
-							{% for text in notlist.text %}
-								<p>{{ text }}</p>
-							{% endfor %}
-						{% endfor %}
+						Sample content
 					</div> <!-- notification panel content -->
 			</div> <!--notification panel -->
 		</br>

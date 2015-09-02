@@ -23,14 +23,14 @@ def index_view2(request):
 		notText = request.POST['content']
 		clist_id = request.POST['clist_id']
 		clist = ContactList.objects.get(id=clist_id)
-		notify(clist, notText)
+		notify(clist, notText, request.user)
 		return HttpResponseRedirect("/notify/")
 	else:
 		#Collect user information
 		c_ids = getUserContactLists(user.profile)
 		contactlists = []
 		notifications = []
-		for cid in c_ids:	
+		for cid in c_ids:
 			c = ContactList.objects.get(id=cid)
 			if c is not None:
 				#Translate data into string object to send to client
@@ -57,13 +57,16 @@ def index_view2(request):
 				nots['text'] = getRecentNots(c)
 				nots['times'] = getRecentNotTimes(c)
 				nots['clist_name'] = c.listname
-				print(nots)
 				notifications.append(nots)
 
 		#Get recent notifications
+		nickname = request.user.profile.nickname
 		context = {
 			"contactlists" : contactlists,
 			"notifications" : notifications,
+			"nickname" : nickname,
+			#160 character text max minus 1 for dash before signiture
+			"not_length" : 159 - len(nickname),
 		}
 		return render(request, 'notify/notify.html', context)
 
@@ -161,7 +164,7 @@ def getLastNames(contactlist):
 	try:
 		return json.decoder.JSONDecoder().decode(contactlist.lastnames)
 	except ValueError:
-		return [] 
+		return []
 
 def getPhoneNumbers(contactlist):
 	try:
@@ -235,7 +238,7 @@ def createContactlist(name):
 	c = ContactList(name=name)
 	c.save()
 
-def notify(contactlist, msg):
+def notify(contactlist, msg, user):
 	carrierlist = [
 		"vtext.com",
 		"txt.att.net",
@@ -247,23 +250,28 @@ def notify(contactlist, msg):
 	gmail_user = os.environ.get("GMAIL_USER")
 	gmail_pwd = os.environ.get("GMAIL_PASSWORD")
 	FROM = contactlist.listname + " <" + gmail_user + ">"
+	#SMS message creation
 	TO = []
-	SUBJECT = ""
 	for number in getPhoneNumbers(contactlist):
 		for carrier in carrierlist:
 			TO.append(number + "@" + carrier)
+	message = """\From: %s\n\n%s""" % (FROM, msg + "-" + user.profile.nickname)
 
+	#For emails message creation
+	TO2 = []
 	for email in getEmails(contactlist):
-		TO.append(email)
+		TO2.append(email)
+	SUBJECT = "New notification from %s" % (user.first_name, )
+	TEXT = "%s\n\nSent from %s on massinform.com" % (msg, user.first_name)
+	message2 = """\From: %s\nSubject: %s\n\n%s""" % (FROM, SUBJECT, TEXT)
 
-	# Prepare actual message
-	message = """\From: %s\n\n%s""" % (FROM, msg)
 	try:
 		server = smtplib.SMTP("smtp.gmail.com", 587)
 		server.ehlo()
 		server.starttls()
 		server.login(gmail_user, gmail_pwd)
 		server.sendmail(FROM, TO, message)
+		server.sendmail(FROM, TO2, message2)
 		server.close()
 
 		rememberNotifications(contactlist, msg)
